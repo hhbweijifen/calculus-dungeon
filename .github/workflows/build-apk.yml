@@ -57,13 +57,16 @@ jobs:
       - name: Sync web assets
         run: npx cap sync
 
+      - name: Fix Gradle Java version
+        run: |
+          echo "org.gradle.java.home=/usr/lib/jvm/temurin-17-amd64" >> android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8" >> android/gradle.properties
+
       - name: Build Debug APK
         working-directory: ./android
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
