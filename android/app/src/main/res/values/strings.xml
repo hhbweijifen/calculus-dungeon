@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">微积分地牢</string>
+    <string name="title_activity_main">微积分地牢</string>
+    <string name="package_name">com.calculus.dungeon.epic</string>
+    <string name="custom_url_scheme">com.calculus.dungeon.epic</string>
+</resources>

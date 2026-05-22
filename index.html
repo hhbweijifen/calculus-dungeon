@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<title>微积分地牢：史诗版 - 数学的终章</title>
+<!-- CSS_PLACEHOLDER -->
+</head>
+<body>
+<div id="gameFrame">
+<canvas id="bgCanvas"></canvas>
+<canvas id="fxCanvas"></canvas>
+<div id="fxLayer"></div>
+
+<!-- ===== MAIN MENU ===== -->
+<div id="mainMenuScreen">
+    <div class="menu-bg-overlay"></div>
+    <div class="menu-content">
+        <div class="menu-logo">
+            <div class="menu-logo-main">微积分地牢</div>
+            <div class="menu-logo-sub">数学的终章 · 史诗版</div>
+            <div class="menu-logo-ver">v2.0</div>
+        </div>
+        <div class="menu-buttons">
+            <button class="menu-btn btn-start" onclick="startNewGame()">🎮 开始冒险</button>
+            <button class="menu-btn btn-continue" id="btnContinue" onclick="continueGame()" style="display:none;">📂 继续游戏</button>
+            <button class="menu-btn btn-endless" onclick="openEndlessSelect()">♾️ 无尽模式</button>
+            <button class="menu-btn btn-daily" onclick="startDailyChallenge()">📅 每日挑战</button>
+            <button class="menu-btn btn-achieve" onclick="openAchievements()">🏆 成就殿堂</button>
+            <button class="menu-btn btn-stats" onclick="openStats()">📊 冒险统计</button>
+            <button class="menu-btn btn-settings" onclick="openSettings()">⚙️ 设置</button>
+            <button class="menu-btn btn-credits" onclick="openCredits()">📜 制作人员</button>
+        </div>
+        <div class="menu-footer">纯前端网页游戏 · 零外部依赖 · 双击即玩</div>
+    </div>
+</div>
+
+<!-- ===== OPENING / STORY ===== -->
+<div id="openingScreen">
+    <div id="storyContainer"></div>
+</div>
+
+<!-- ===== CHARACTER SELECT ===== -->
+<div id="charSelectScreen">
+    <div class="cs-bg"></div>
+    <div class="cs-title">选择你的数学家</div>
+    <div class="cs-sub">不同的数学道路，不同的命运</div>
+    <div class="cs-difficulty">
+        <span class="cs-diff-label">难度:</span>
+        <button class="cs-diff-btn active" data-diff="normal" onclick="setDifficulty('normal')">普通</button>
+        <button class="cs-diff-btn" data-diff="hard" onclick="setDifficulty('hard')">困难</button>
+        <button class="cs-diff-btn" data-diff="hell" onclick="setDifficulty('hell')">地狱</button>
+    </div>
+    <div class="cs-grid" id="charGrid"></div>
+    <div class="cs-detail" id="charDetail"></div>
+    <button class="cs-start-btn" id="csStartBtn" onclick="confirmCharSelect()">开始攀登</button>
+    <button class="cs-back-btn" onclick="backToMenu()">返回</button>
+</div>
+
+<!-- ===== MAP ===== -->
+<div id="mapScreen">
+    <div class="map-bg"></div>
+    <div class="map-header">
+        <div class="map-floor" id="mapFloor">第一层：函数的哀鸣</div>
+        <div class="map-stats">
+            <span class="map-stat hp" id="mapHp">❤️ 80/80</span>
+            <span class="map-stat gold" id="mapGold">💰 100</span>
+            <span class="map-stat deck" id="mapDeck">📚 10</span>
+            <span class="map-stat floor" id="mapFloorNum">🏰 1/3</span>
+        </div>
+    </div>
+    <div class="map-actions">
+        <button class="map-action-btn" onclick="openSkillBook()">📖 技能书</button>
+        <button class="map-action-btn" onclick="openDeckView()">📚 牌组</button>
+        <button class="map-action-btn" onclick="openRelicBag()">🏺 遗物</button>
+        <button class="map-action-btn" onclick="openAchievements()">🏆 成就</button>
+    </div>
+    <div class="map-grid" id="mapGrid"></div>
+    <div class="map-floor-progress">
+        <div class="map-progress-bar"><div class="map-progress-fill" id="mapProgressFill"></div></div>
+    </div>
+</div>
+
+<!-- ===== QUIZ ===== -->
+<div id="quizScreen">
+    <div class="quiz-bg"></div>
+    <div class="quiz-box">
+        <div class="quiz-header">
+            <div class="quiz-title">🧮 数学考验</div>
+            <div class="quiz-sub">答对可进入战场，答错将承受代价</div>
+        </div>
+        <div class="quiz-difficulty" id="quizDifficulty">难度: 普通</div>
+        <div class="quiz-question" id="quizQuestion">...</div>
+        <div class="quiz-timer-bar"><div class="quiz-timer-fill" id="quizTimerFill"></div></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-result" id="quizResult"></div>
+        <div class="quiz-streak" id="quizStreak">连对: 0</div>
+    </div>
+</div>
+
+<!-- ===== BATTLE ===== -->
+<div id="battleScreen">
+    <div class="battle-bg" id="battleBg"></div>
+    <div class="battle-top">
+        <div class="player-panel">
+            <div class="player-avatar" id="playerAvatar">🧮</div>
+            <div class="player-info">
+                <div class="player-name" id="playerName">数学家</div>
+                <div class="hp-bar-wrap">
+                    <div class="hp-bar"><div class="hp-fill player" id="php"></div></div>
+                    <div class="hp-text" id="pht">80/80</div>
+                </div>
+                <div class="player-buffs" id="playerBuffs"></div>
+            </div>
+        </div>
+        <div class="battle-center">
+            <div class="turn-display">回合 <span id="turnNum">1</span></div>
+            <div class="combo-display" id="comboDisplay"></div>
+        </div>
+        <div class="energy-panel">
+            <div class="energy-item"><span class="e-icon">⚡</span><span class="e-text" id="energyText">3/3</span></div>
+            <div class="energy-item int"><span class="e-icon">∫</span><span class="e-text" id="intEnergyText">3/3</span></div>
+            <div class="energy-item diff"><span class="e-icon">∂</span><span class="e-text" id="diffEnergyText">3/3</span></div>
+        </div>
+    </div>
+    <div class="battle-mid">
+        <div class="pile-info">
+            <span id="drawPileInfo">抽牌堆: 0</span>
+            <span id="discardPileInfo">弃牌堆: 0</span>
+        </div>
+    </div>
+    <div class="battle-arena" id="battleArena">
+        <div class="intent-box" id="intentBox" style="display:none;">
+            <div class="intent-label">意图</div>
+            <div class="intent-icon" id="intentIcon">⚔️</div>
+            <div class="intent-text" id="intentText">攻击 12</div>
+        </div>
+        <div class="hero-avatar" id="heroAvatar">🧮</div>
+        <div class="enemy-avatar" id="battleEnemy"></div>
+        <div class="func-graph" id="funcGraph"></div>
+    </div>
+    <div class="potion-bar" id="potionBar"></div>
+    <div class="battle-log" id="battleLog"></div>
+    <div class="hand-section">
+        <div class="hand-label-row">
+            <span class="hand-label">— 手牌 —</span>
+            <span class="draw-info" id="drawInfo">抽5张 | 能量3</span>
+        </div>
+        <div class="hand-cards" id="handCards"></div>
+    </div>
+    <div class="battle-btns">
+        <button class="battle-btn btn-play" id="btnPlay" onclick="playCards()" disabled>出牌</button>
+        <button class="battle-btn btn-end" onclick="endTurn()">结束回合</button>
+        <button class="battle-btn btn-settings-small" onclick="openBattleSettings()">⚙️</button>
+    </div>
+</div>
+
+<!-- ===== EVENT ===== -->
+<div id="eventScreen">
+    <div class="event-bg"></div>
+    <div class="event-content">
+        <div class="event-icon" id="eventIcon">📜</div>
+        <div class="event-title" id="eventTitle">数学定理</div>
+        <div class="event-desc" id="eventDesc">...</div>
+        <div class="event-choices" id="eventChoices"></div>
+        <div class="event-result" id="eventResult" style="display:none;"></div>
+        <button class="event-continue" id="eventContinue" style="display:none;" onclick="finishEvent()">继续</button>
+    </div>
+</div>
+
+<!-- ===== SHOP ===== -->
+<div id="shopScreen">
+    <div class="shop-bg"></div>
+    <div class="shop-header">
+        <div class="shop-title">🔮 数学黑市</div>
+        <div class="shop-gold" id="shopGold">💰 100</div>
+    </div>
+    <div class="shop-tabs">
+        <button class="shop-tab active" onclick="switchShopTab('cards')">🃏 卡牌</button>
+        <button class="shop-tab" onclick="switchShopTab('potions')">🧪 药水</button>
+        <button class="shop-tab" onclick="switchShopTab('relics')">🏺 遗物</button>
+    </div>
+    <div class="shop-content" id="shopContent"></div>
+    <button class="shop-leave-btn" onclick="leaveShop()">离开商店</button>
+</div>
+
+<!-- ===== REST ===== -->
+<div id="restScreen">
+    <div class="rest-bg"></div>
+    <div class="rest-content">
+        <div class="rest-title">🔥 篝火旁</div>
+        <div class="rest-desc">火焰跳动着，数学符号在灰烬中闪烁...</div>
+        <div class="rest-options" id="restOptions"></div>
+        <button class="rest-back" onclick="leaveRest()">离开</button>
+    </div>
+</div>
+
+<!-- ===== REWARD ===== -->
+<div id="rewardScreen">
+    <div class="reward-bg"></div>
+    <div class="reward-title">🎁 战利品</div>
+    <div class="reward-sub" id="rewardSub">选择一张卡牌加入牌组</div>
+    <div class="reward-cards" id="rewardCards"></div>
+    <div class="reward-extras" id="rewardExtras"></div>
+    <button class="skip-btn" onclick="skipReward()">跳过</button>
+</div>
+
+<!-- ===== SKILL BOOK ===== -->
+<div id="skillScreen">
+    <div class="skill-bg"></div>
+    <div class="skill-header">
+        <div class="skill-title">📖 技能书</div>
+        <div class="skill-points" id="skillPoints">⭐ 技能点: 0</div>
+    </div>
+    <div class="skill-desc" id="skillDesc">击败敌人获得技能点，强化你的数学能力</div>
+    <div class="skill-tree" id="skillTree"></div>
+    <button class="skill-back-btn" onclick="closeSkillBook()">返回地图</button>
+</div>
+
+<!-- ===== DECK VIEW ===== -->
+<div id="deckViewScreen">
+    <div class="deck-bg"></div>
+    <div class="deck-header">
+        <div class="deck-title">📚 当前牌组</div>
+        <div class="deck-count" id="deckCount">共 10 张</div>
+    </div>
+    <div class="deck-grid" id="deckGrid"></div>
+    <button class="deck-back-btn" onclick="closeDeckView()">返回</button>
+</div>
+
+<!-- ===== RELIC BAG ===== -->
+<div id="relicScreen">
+    <div class="relic-bg"></div>
+    <div class="relic-header">
+        <div class="relic-title">🏺 遗物背包</div>
+        <div class="relic-count" id="relicCount">0 / 20</div>
+    </div>
+    <div class="relic-grid" id="relicGrid"></div>
+    <button class="relic-back-btn" onclick="closeRelicBag()">返回</button>
+</div>
+
+<!-- ===== SELECT CARD ===== -->
+<div id="selectCardScreen">
+    <div class="sc-bg"></div>
+    <div class="sc-title" id="selectCardTitle">选择一张卡牌</div>
+    <div class="sc-grid" id="selectCardGrid"></div>
+    <button class="sc-cancel" onclick="closeSelectCard()">取消</button>
+</div>
+
+<!-- ===== ACHIEVEMENTS ===== -->
+<div id="achievementScreen">
+    <div class="ach-bg"></div>
+    <div class="ach-header">
+        <div class="ach-title">🏆 成就殿堂</div>
+        <div class="ach-progress" id="achProgress">0 / 30</div>
+    </div>
+    <div class="ach-grid" id="achGrid"></div>
+    <button class="ach-back-btn" onclick="closeAchievements()">返回</button>
+</div>
+
+<!-- ===== STATS ===== -->
+<div id="statsScreen">
+    <div class="stats-bg"></div>
+    <div class="stats-header">
+        <div class="stats-title">📊 冒险统计</div>
+    </div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <button class="stats-back-btn" onclick="closeStats()">返回</button>
+</div>
+
+<!-- ===== SETTINGS ===== -->
+<div id="settingsScreen">
+    <div class="set-bg"></div>
+    <div class="set-header">
+        <div class="set-title">⚙️ 设置</div>
+    </div>
+    <div class="set-content">
+        <div class="set-row">
+            <span class="set-label">背景音乐</span>
+            <input type="range" class="set-slider" id="bgmVolume" min="0" max="100" value="40" onchange="setBgmVolume(this.value)">
+            <span class="set-value" id="bgmVolumeVal">40%</span>
+        </div>
+        <div class="set-row">
+            <span class="set-label">音效</span>
+            <input type="range" class="set-slider" id="sfxVolume" min="0" max="100" value="60" onchange="setSfxVolume(this.value)">
+            <span class="set-value" id="sfxVolumeVal">60%</span>
+        </div>
+        <div class="set-row">
+            <span class="set-label">画面质量</span>
+            <select class="set-select" id="qualitySelect" onchange="setQuality(this.value)">
+                <option value="low">低 (流畅)</option>
+                <option value="medium" selected>中 (平衡)</option>
+                <option value="high">高 (极致)</option>
+                <option value="ultra"> ultra (史诗)</option>
+            </select>
+        </div>
+        <div class="set-row">
+            <span class="set-label">剧情速度</span>
+            <select class="set-select" id="storySpeed" onchange="setStorySpeed(this.value)">
+                <option value="fast">快</option>
+                <option value="normal" selected>正常</option>
+                <option value="slow">慢 (沉浸)</option>
+            </select>
+        </div>
+        <div class="set-row">
+            <span class="set-label">屏幕震动</span>
+            <button class="set-toggle active" id="shakeToggle" onclick="toggleShake()">开启</button>
+        </div>
+        <div class="set-row">
+            <span class="set-label">导出存档</span>
+            <button class="set-btn" onclick="exportSave()">📤 导出</button>
+        </div>
+        <div class="set-row">
+            <span class="set-label">导入存档</span>
+            <button class="set-btn" onclick="importSave()">📥 导入</button>
+        </div>
+        <div class="set-row">
+            <span class="set-label">清除所有数据</span>
+            <button class="set-btn danger" onclick="clearAllData()">🗑️ 清除</button>
+        </div>
+    </div>
+    <button class="set-back-btn" onclick="closeSettings()">返回</button>
+</div>
+
+<!-- ===== CREDITS ===== -->
+<div id="creditsScreen">
+    <div class="cred-bg"></div>
+    <div class="cred-content">
+        <div class="cred-title">📜 制作人员</div>
+        <div class="cred-section">
+            <div class="cred-role">原作 & 设计</div>
+            <div class="cred-name">玩家本人</div>
+        </div>
+        <div class="cred-section">
+            <div class="cred-role">史诗版升级</div>
+            <div class="cred-name">Kimi Code CLI</div>
+        </div>
+        <div class="cred-section">
+            <div class="cred-role">音乐 & 音效</div>
+            <div class="cred-name">Web Audio API 合成引擎</div>
+        </div>
+        <div class="cred-section">
+            <div class="cred-role">美术</div>
+            <div class="cred-name">CSS / SVG / Canvas 程序化生成</div>
+        </div>
+        <div class="cred-quote">"当数学成为武器，当定理化作利刃，发散的世界等待收敛。"</div>
+        <button class="cred-back-btn" onclick="closeCredits()">返回</button>
+    </div>
+</div>
+
+<!-- ===== DIALOGUE ===== -->
+<div id="dialogueScreen">
+    <div class="dia-bg"></div>
+    <div class="dia-content">
+        <div class="dia-portrait" id="diaPortrait"></div>
+        <div class="dia-box">
+            <div class="dia-name" id="diaName">...</div>
+            <div class="dia-text" id="diaText">...</div>
+            <div class="dia-choices" id="diaChoices"></div>
+            <div class="dia-hint">点击继续 ▼</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== FLOOR TRANSITION ===== -->
+<div id="floorTransition">
+    <div class="ft-content">
+        <div class="ft-num" id="ftNum">第二层</div>
+        <div class="ft-name" id="ftName">极限的边缘</div>
+        <div class="ft-desc" id="ftDesc">更深的黑暗在等待...</div>
+    </div>
+</div>
+
+<!-- ===== BOSS INTRO ===== -->
+<div id="bossIntro">
+    <div class="bi-eye" id="biEye"></div>
+    <div class="bi-name" id="biName">BOSS</div>
+    <div class="bi-title" id="biTitle">...</div>
+    <div class="bi-func" id="biFunc">...</div>
+</div>
+
+<!-- ===== GAME OVER ===== -->
+<div id="overScreen">
+    <div class="over-bg"></div>
+    <div class="over-content">
+        <div class="over-title" id="overTitle">发散...</div>
+        <div class="over-subtitle" id="overSubtitle">数学的光芒尚未熄灭</div>
+        <div class="over-stats" id="overStats"></div>
+        <div class="over-ending" id="overEnding"></div>
+        <div class="over-btns">
+            <button class="over-btn" onclick="restartGame()">再来一局</button>
+            <button class="over-btn secondary" onclick="backToMenu()">返回主菜单</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== VICTORY ===== -->
+<div id="victoryScreen">
+    <div class="vic-bg"></div>
+    <div class="vic-content">
+        <div class="vic-title" id="vicTitle">收敛！</div>
+        <div class="vic-subtitle" id="vicSubtitle">数学世界重获秩序</div>
+        <div class="vic-stats" id="vicStats"></div>
+        <div class="vic-ending" id="vicEnding"></div>
+        <div class="vic-btns">
+            <button class="vic-btn" onclick="restartGame()">再次挑战</button>
+            <button class="vic-btn secondary" onclick="backToMenu()">返回主菜单</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toastLayer"></div>
+
+<!-- ===== SAVE/IMPORT DIALOG ===== -->
+<div id="importDialog" style="display:none;">
+    <div class="id-bg"></div>
+    <div class="id-box">
+        <div class="id-title">导入存档</div>
+        <textarea class="id-textarea" id="importTextarea" placeholder="粘贴存档代码..."></textarea>
+        <div class="id-btns">
+            <button class="id-btn" onclick="confirmImport()">导入</button>
+            <button class="id-btn secondary" onclick="cancelImport()">取消</button>
+        </div>
+    </div>
+</div>
+
+</div>
+<!-- JS_PLACEHOLDER -->
+</body>
+<script>
+// PWA Service Worker 注册
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(function(reg) { console.log('SW registered:', reg.scope); })
+    .catch(function(err) { console.log('SW registration failed:', err); });
+}
+</script>
+</html>

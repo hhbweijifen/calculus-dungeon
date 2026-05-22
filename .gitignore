@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Capacitor
+ios/
+# android/  ← 保留Android项目，GitHub Actions需要它
+
+# Build outputs
+android/app/build/
+android/.gradle/
+android/build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

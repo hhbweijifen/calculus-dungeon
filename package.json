@@ -1,0 +1,24 @@
+{
+  "name": "calculus-dungeon-epic",
+  "version": "2.0.0",
+  "description": "微积分地牢：史诗版 - 数学主题Roguelike卡牌游戏",
+  "main": "index.html",
+  "scripts": {
+    "build": "node build.js",
+    "sync": "cap sync",
+    "open:android": "cap open android"
+  },
+  "keywords": [
+    "game",
+    "math",
+    "roguelike",
+    "card"
+  ],
+  "author": "Player",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^5.7.8",
+    "@capacitor/cli": "^5.7.8",
+    "@capacitor/core": "^5.7.8"
+  }
+}
