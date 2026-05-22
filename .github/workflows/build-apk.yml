@@ -28,6 +28,11 @@ jobs:
         with:
           packages: 'platform-tools platforms;android-33 build-tools;33.0.0'
 
+      - name: Prepare web assets
+        run: |
+          mkdir -p www
+          cp index.html www/
+
       - name: Install Capacitor
         run: |
           npm init -y
@@ -39,7 +44,7 @@ jobs:
           {
             "appId": "com.hhbweijifen.calculus",
             "appName": "微积分地牢",
-            "webDir": ".",
+            "webDir": "www",
             "server": {
               "androidScheme": "https"
             }
